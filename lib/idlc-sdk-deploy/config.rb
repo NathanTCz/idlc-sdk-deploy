@@ -1,0 +1,82 @@
+module Idlc
+  module Deploy
+    class Config
+      include Idlc::Helpers
+
+      class << self
+        def load_tasks
+          Dir.glob("#{__dir__}/tasks/*.rake").each do |task_file|
+            load task_file
+          end
+        end
+
+        def add_deployment_var(key, value)
+          ENV["TF_VAR_#{key}"] = value
+        end
+
+        def get_deployment_var(key)
+          ENV["TF_VAR_#{key}"]
+        end
+
+        def get_deployment_output(key)
+          Terraform::Binary.output(key).strip!
+        end
+      end
+
+      def initialize(region)
+        @region = region
+
+        Idlc::Utility.check_for_creds
+
+      rescue Idlc::Utility::MissingCredentials => e
+        err("ERROR: #{e.message}\n")
+        exit 1
+      end
+
+      def configure_state(bucket, sub_bucket)
+        validate_environment
+
+        args = []
+        args << '-backend=s3'
+        args << '-backend-config="acl=private"'
+        args << "-backend-config=\"bucket=#{bucket}\""
+        args << '-backend-config="encrypt=true"'
+        args << "-backend-config=\"key=#{sub_bucket}/terraform.tfstate\""
+        args << "-backend-config=\"region=#{@region}\""
+
+        Terraform::Binary.remote("config #{args.join(' ')}")
+      end
+
+      def parse(config_file)
+        raise ArgumentError, "#{config_file} does not exist" unless File.exist? config_file
+        Config.add_deployment_var('inf_config_file', config_file)
+
+        # Parse the config file
+        YAML.load_file(config_file)['configuration'].each do |section, body|
+          next if section == 'dynamics' # skip the dynamics sections
+          next unless (section =~ /overrides/).nil? # skip the app overrides sections
+          next if body.nil?
+          body.each do |key, value|
+            debug("#{section}: #{key} = #{value}")
+            Config.add_deployment_var(key, value)
+          end
+        end
+      end
+
+      private
+
+      def validate_environment
+        %w[
+          SIZE
+          TF_VAR_tfstate_bucket
+          TF_VAR_job_code
+          TF_VAR_env
+          TF_VAR_domain
+          TF_VAR_public_dns
+        ].each do |var|
+          raise "missing #{var} in environment" unless ENV.include? var
+        end
+      end
+    end
+  end
+end

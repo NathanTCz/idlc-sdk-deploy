@@ -1,0 +1,9 @@
+configuration:
+  test:
+    env: 'unittest'
+
+  app_overrides:
+    dontparse_override: 'unittest'
+
+  dynamics:
+    dontparse_dynamic: 'unittest'
