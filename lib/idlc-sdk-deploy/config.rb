@@ -19,7 +19,7 @@ module Idlc
         end
 
         def get_deployment_output(key)
-          Terraform::Binary.output(key).strip!
+          `#{Terraform::Binary::Command.binary} output #{key}`.strip!
         end
       end
 
