@@ -17,6 +17,5 @@ require 'idlc-sdk-core'
 require 'idlc-sdk-deploy/config'
 require 'idlc-sdk-deploy/power'
 require 'idlc-sdk-deploy/keypair'
-require 'idlc-sdk-deploy/elasticsearchv2'
 
 Idlc::Deploy::Config.load_tasks
