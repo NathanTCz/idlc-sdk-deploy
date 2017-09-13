@@ -112,6 +112,17 @@ module Idlc
           true
         end
 
+        def get_name(tags)
+          name = ''
+
+          tags.each do |t|
+            name = t.value if t.key == 'Name'
+          end
+
+          # Return
+          name
+        end
+
         private
 
         def keep_alive?(tags)
@@ -128,16 +139,6 @@ module Idlc
           string.to_s == 'true'
         end
 
-        def get_name(tags)
-          name = ''
-
-          tags.each do |t|
-            name = t.value if t.key == 'Name'
-          end
-
-          # Return
-          name
-        end
 
         def http_request(endpoint)
           uri = URI.parse endpoint
