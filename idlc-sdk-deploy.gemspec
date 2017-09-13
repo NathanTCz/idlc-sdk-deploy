@@ -36,8 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'aws-sdk-elasticsearchservice'
   spec.add_runtime_dependency 'aws-sigv4'
   spec.add_runtime_dependency 'net-telnet'
-  spec.add_runtime_dependency 'packer-binary'
-  spec.add_runtime_dependency 'rubocop', '0.48.1'
   spec.add_runtime_dependency 'sshkey'
   spec.add_runtime_dependency 'terraform-binary'
+  spec.add_runtime_dependency 'terraform_landscape'
 end
