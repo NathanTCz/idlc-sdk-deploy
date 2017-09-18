@@ -36,15 +36,8 @@ module Idlc
       def configure_state(bucket, sub_bucket)
         validate_environment
 
-        args = []
-        args << '-backend=s3'
-        args << '-backend-config="acl=private"'
-        args << "-backend-config=\"bucket=#{bucket}\""
-        args << '-backend-config="encrypt=true"'
-        args << "-backend-config=\"key=#{sub_bucket}/terraform.tfstate\""
-        args << "-backend-config=\"region=#{@region}\""
-
-        Terraform::Binary.remote("config #{args.join(' ')}")
+        configure_tfstatev8 if Terraform::Binary::config.version.to_i <= 0.8
+        configure_tfstatev9 if Terraform::Binary::config.version.to_i > 0.8
       end
 
       def parse(config_file)
@@ -64,6 +57,22 @@ module Idlc
       end
 
       private
+
+      def configure_tfstatev8
+        args = []
+        args << '-backend=s3'
+        args << '-backend-config="acl=private"'
+        args << "-backend-config=\"bucket=#{bucket}\""
+        args << '-backend-config="encrypt=true"'
+        args << "-backend-config=\"key=#{sub_bucket}/terraform.tfstate\""
+        args << "-backend-config=\"region=#{@region}\""
+
+        Terraform::Binary.remote("config #{args.join(' ')}")
+      end
+
+      def configure_tfstatev9
+        Terraform::Binary.init()
+      end
 
       def validate_environment
         %w[
