@@ -33,7 +33,7 @@ module Idlc
             tags: [ # required
               {
                 key: 'keep_alive',
-                value: 'true'
+                value: "true-#{Time.now.to_i}"
               }
             ]
           )
@@ -127,18 +127,39 @@ module Idlc
 
         def keep_alive?(tags)
           k = 'false'
+          k = get_keep_alive(tags)
 
-          tags.each do |t|
-            k = t.value if t.key == 'keep_alive'
-          end
+        return !keep_alive_expired?(k) if true?(k.split('-')[0])
+        false
+        end
 
-          true?(k)
+        def keep_alive_expired?(tag)
+          tag_parts = tag.split('-')
+
+          msg("keep_alive expired..") if one_week_old?(tag_parts[1].to_i)
+          msg("keep_alive expires in #{((Time.now.to_i - (tag_parts[1].to_i + (7*24*3600)))/24/3600).abs} days..") unless one_week_old?(tag_parts[1].to_i)
+
+          one_week_old?(tag_parts[1].to_i)
         end
 
         def true?(string)
           string.to_s == 'true'
         end
 
+        def one_week_old?(ts)
+          (Time.now.to_i - ts) > (7*(24*3600))
+        end
+
+        def get_keep_alive(tags)
+          v = ''
+
+          tags.each do |t|
+            v = t.value if t.key == 'keep_alive'
+          end
+
+          # Return
+          v
+        end
 
         def http_request(endpoint)
           uri = URI.parse endpoint

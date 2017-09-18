@@ -3,7 +3,6 @@ require 'spec_helper'
 module Idlc
   module Deploy
     describe Power do
-
       # Define Public interface
       it { should respond_to(:start_instance) }
       it { should respond_to(:stop_instance) }
@@ -20,9 +19,9 @@ module Idlc
       end
 
       it 'times out if no success' do
-        expect {
+        expect do
           Power.wait_for_response('https://example.com/', 'thisdoesntexist', 0, 0)
-        }.to raise_error Power::ConnectionError
+        end.to raise_error Power::ConnectionError
       end
 
       it 'raises if no host is supplied' do
@@ -34,33 +33,45 @@ module Idlc
       end
 
       it 'times out if no success' do
-        expect {
+        expect do
           Power.wait_for_tcp_connection('4.2.2.2', 55, 0.1, 0, 0)
-        }.to raise_error Power::ConnectionError
+        end.to raise_error Power::ConnectionError
       end
 
-      it 'skips instances marked keep_alive on power off' do
-        expect {
-          Tag = Struct.new(:key, :value)
+      context 'checks for keep_alive tag' do
 
-          # Mimic Aws::EC2::Instance
-          class TestInstance
-            attr_reader :tags
-            def initialize
-              @tags = [Tag.new(
-                'keep_alive',
-                'true'
-              )]
-            end
+        Tag = Struct.new(:key, :value)
+
+        # Mimic Aws::EC2::Instance
+        class TestInstance
+          attr_reader :tags
+          def initialize(keep_alive)
+            @tags = [Tag.new(
+              'keep_alive',
+              keep_alive
+            )]
           end
+        end
 
-          instance = TestInstance.new
+        it 'skips instances marked keep_alive on power off' do
+          expect do
+            instance = TestInstance.new(keep_alive="true-#{Time.now.to_i - (2 * 24 * 3600)}")
+            # This should throw the exception InstanceKeepAlive due to keep_alive = 'true-01234567'
+            # where the timestamp is not yet 7 days old
+            Power.stop_instance(instance)
+          end.to raise_error Power::InstanceKeepAlive
+        end
 
-          # This should throw the exception due to keep_alive = 'true'
-          Power.stop_instance(instance)
-        }.to raise_error Power::InstanceKeepAlive
+        it 'turns off instance when not marked keep_alive' do
+          expect do
+            instance = TestInstance.new(keep_alive='false')
+            # This should throw the exception NoMethodError because we are trying
+            # run .stop() (from the AWS SDK) on our TestInstance class because keep_alive
+            # is set to 'false'
+            Power.stop_instance(instance)
+          end.to raise_error NoMethodError
+        end
       end
-
     end
   end
 end
