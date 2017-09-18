@@ -36,7 +36,7 @@ module Idlc
       def configure_state(bucket, sub_bucket)
         validate_environment
 
-        configure_tfstatev8 if Terraform::Binary::config.version.to_i <= 0.8
+        configure_tfstatev8(bucket, sub_bucket) if Terraform::Binary::config.version.to_i <= 0.8
         configure_tfstatev9 if Terraform::Binary::config.version.to_i > 0.8
       end
 
@@ -58,7 +58,7 @@ module Idlc
 
       private
 
-      def configure_tfstatev8
+      def configure_tfstatev8(bucket, sub_bucket)
         args = []
         args << '-backend=s3'
         args << '-backend-config="acl=private"'
