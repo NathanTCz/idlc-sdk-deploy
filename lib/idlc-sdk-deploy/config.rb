@@ -33,11 +33,13 @@ module Idlc
         exit 1
       end
 
-      def configure_state(bucket, sub_bucket)
+      def configure_state(bucket, sub_bucket, working_directory)
         validate_environment
 
-        configure_tfstatev8(bucket, sub_bucket) if Terraform::Binary::config.version.to_i <= 0.8
-        configure_tfstatev9 if Terraform::Binary::config.version.to_i > 0.8
+        tf_version = Terraform::Binary::config.version.split('.')
+
+        configure_tfstatev8(bucket, sub_bucket, working_directory) if tf_version[0].to_i == 0 && tf_version[1].to_i <= 8
+        configure_tfstatev9(bucket, sub_bucket, working_directory) if tf_version[0].to_i >= 0 && tf_version[1].to_i > 8
       end
 
       def parse(config_file)
@@ -58,7 +60,7 @@ module Idlc
 
       private
 
-      def configure_tfstatev8(bucket, sub_bucket)
+      def configure_tfstatev8(bucket, sub_bucket, working_directory)
         args = []
         args << '-backend=s3'
         args << '-backend-config="acl=private"'
@@ -68,10 +70,17 @@ module Idlc
         args << "-backend-config=\"region=#{@region}\""
 
         Terraform::Binary.remote("config #{args.join(' ')}")
+        Terraform::Binary.get("-update #{working_directory}")
       end
 
-      def configure_tfstatev9
-        Terraform::Binary.init()
+      def configure_tfstatev9(bucket, sub_bucket, working_directory)
+        args = []
+        args << "-backend-config=\"bucket=#{bucket}\""
+        args << "-backend-config=\"key=#{sub_bucket}/terraform.tfstate\""
+        args << "-backend-config=\"region=#{@region}\""
+        args << "-force-copy"
+
+        Terraform::Binary.init("#{args.join(' ')} #{working_directory}")
       end
 
       def validate_environment
