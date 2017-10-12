@@ -90,7 +90,6 @@ module Idlc
           TF_VAR_job_code
           TF_VAR_env
           TF_VAR_domain
-          TF_VAR_public_dns
         ].each do |var|
           raise "missing #{var} in environment" unless ENV.include? var
         end
