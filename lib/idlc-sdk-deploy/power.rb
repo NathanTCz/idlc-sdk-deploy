@@ -12,7 +12,7 @@ module Idlc
           instance.start(
             dry_run: false
           )
-          unless async do
+          unless async
             obj = instance.wait_until_running
             msg('Started Instance: ' + get_name(obj.tags))
           end
@@ -25,7 +25,7 @@ module Idlc
           instance.stop(
             dry_run: false
           )
-          unless async do
+          unless async
             obj = instance.wait_until_stopped
             msg('Stopped Instance: ' + get_name(obj.tags))
           end
