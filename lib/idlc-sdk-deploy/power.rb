@@ -7,24 +7,28 @@ module Idlc
       class << self
         include Idlc::Helpers
 
-        def start_instance(instance)
+        def start_instance(instance, async=false)
           msg('Starting Instance...')
           instance.start(
             dry_run: false
           )
-          obj = instance.wait_until_running
-          msg('Started Instance: ' + get_name(obj.tags))
+          unless async do
+            obj = instance.wait_until_running
+            msg('Started Instance: ' + get_name(obj.tags))
+          end
         end
 
-        def stop_instance(instance)
+        def stop_instance(instance, async=false)
           raise InstanceKeepAlive if keep_alive?(instance.tags)
 
           msg('Stopping Instance...')
           instance.stop(
             dry_run: false
           )
-          obj = instance.wait_until_stopped
-          msg('Stopped Instance: ' + get_name(obj.tags))
+          unless async do
+            obj = instance.wait_until_stopped
+            msg('Stopped Instance: ' + get_name(obj.tags))
+          end
         end
 
         def enable_keep_alive(instance)
