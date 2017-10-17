@@ -8,7 +8,7 @@ module Idlc
         include Idlc::Helpers
 
         def start_instance(instance, async=false)
-          msg('Starting Instance...')
+          msg("Starting Instance (#{instance.id})...")
           instance.start(
             dry_run: false
           )
@@ -21,7 +21,7 @@ module Idlc
         def stop_instance(instance, async=false)
           raise InstanceKeepAlive if keep_alive?(instance.tags)
 
-          msg('Stopping Instance...')
+          msg("Stopping Instance (#{instance.id})...")
           instance.stop(
             dry_run: false
           )
