@@ -85,7 +85,6 @@ module Idlc
 
       def validate_environment
         %w[
-          SIZE
           TF_VAR_tfstate_bucket
           TF_VAR_job_code
           TF_VAR_env
