@@ -21,6 +21,18 @@ module Idlc
         def get_deployment_output(key)
           `#{Terraform::Binary::Command.binary} output #{key}`.strip!
         end
+
+        def get_env_metadata(env_key)
+          client = Idlc::Deploy::AWSRestClient.new()
+
+          request = {
+            service: 'deploy',
+            method: 'GET',
+            path: "/metadata/#{env_key}",
+          }
+
+          client.fetch(request.to_json)['deployments'].first
+        end
       end
 
       def initialize(region)
