@@ -30,8 +30,17 @@ module Idlc
             method: 'GET',
             path: "/metadata/#{env_key}",
           }
+          metadata = client.fetch(request.to_json)['deployments'].first
 
-          client.fetch(request.to_json)['deployments'].first
+          request = {
+            service: 'config',
+            method: 'GET',
+            path: "/account/#{metadata['environment']['account_alias']}",
+          }
+          account = client.fetch(request.to_json)
+
+          metadata['account'] = account
+          metadata
         end
       end
 
