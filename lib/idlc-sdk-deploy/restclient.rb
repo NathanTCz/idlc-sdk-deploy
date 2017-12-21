@@ -25,7 +25,7 @@ module Idlc
         request[:httpMethod] = request[:method]
 
         resp = client.invoke({
-          function_name: "service-deploy-lambda-proxy",
+          function_name: "service-lambda-proxy",
           invocation_type: "RequestResponse",
           log_type: "None",
           payload: request.to_json,
