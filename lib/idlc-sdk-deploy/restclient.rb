@@ -49,7 +49,7 @@ module Idlc
       def fetch(request)
         request = JSON.parse(request)
 
-        endpoint = 'https://' + $config["#{request['service']}_svc"]['endpoint'] + $config["#{request['service']}"]['stage']
+        endpoint = 'https://' + $config["#{request['service']}"]['endpoint'] + $config["#{request['service']}"]['stage']
 
         body = ''
         body = request['body'].to_json if request['body']
