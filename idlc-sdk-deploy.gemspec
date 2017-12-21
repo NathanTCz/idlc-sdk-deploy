@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'idlc-sdk-core'
   spec.add_runtime_dependency 'aws-sdk-elasticsearchservice'
+  spec.add_runtime_dependency 'aws-sdk-lambda'
   spec.add_runtime_dependency 'aws-sigv4'
   spec.add_runtime_dependency 'net-telnet'
   spec.add_runtime_dependency 'sshkey'

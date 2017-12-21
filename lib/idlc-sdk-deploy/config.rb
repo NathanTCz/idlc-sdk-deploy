@@ -23,23 +23,41 @@ module Idlc
         end
 
         def get_env_metadata(env_key)
-          client = Idlc::Deploy::AWSRestClient.new()
+          client = Idlc::Deploy::AWSLambdaProxy.new()
 
           request = {
             service: 'deploy',
             method: 'GET',
-            path: "/metadata/#{env_key}",
+            lambda: 'metadata',
+            pathParameters: {
+              jobName: env_key
+            }
           }
-          metadata = client.fetch(request.to_json)['deployments'].first
+          metadata = client.fetch(request)['deployments'].first
 
           request = {
             service: 'config',
             method: 'GET',
-            path: "/account/#{metadata['environment']['account_alias']}",
+            lambda: "accounts",
+            pathParameters: {
+              accountName: metadata['environment']['account_alias']
+            }
           }
-          account = client.fetch(request.to_json)
+          account = client.fetch(request)
 
           metadata['account'] = account
+
+          request = {
+            service: 'config',
+            method: 'GET',
+            lambda: "applications",
+            pathParameters: {
+              appName: metadata['environment']['application_name'].downcase
+            }
+          }
+          application = client.fetch(request)
+
+          metadata['application'] = application
           metadata
         end
       end

@@ -1,15 +1,39 @@
 require 'aws-sigv4'
 require 'json'
 require 'net/http'
+require 'aws-sdk-lambda'
 
 # Service Definitions
-$config = {
-  'config_svc_endpoint' => 'https://un0t03st4m.execute-api.us-east-1.amazonaws.com/dev',
-  'deploy_svc_endpoint' => 'https://dwervfhpxe.execute-api.us-east-1.amazonaws.com/dev'
+$services = {
+  'config' => {
+    'endpoint' => 'un0t03st4m.execute-api.us-east-1.amazonaws.com',
+    'stage' => 'dev'
+  },
+  'deploy' => {
+    'endpoint' => 'dwervfhpxe.execute-api.us-east-1.amazonaws.com',
+    'stage' => 'dev'
+  }
 }
 
 module Idlc
   module Deploy
+    class AWSLambdaProxy
+      def fetch(request)
+        client = Aws::Lambda::Client.new()
+
+        request[:function] = "#{request[:service]}-" + $services[request[:service]]['stage'] + "-#{request[:lambda]}"
+        request[:httpMethod] = request[:method]
+
+        resp = client.invoke({
+          function_name: "service-deploy-lambda-proxy",
+          invocation_type: "RequestResponse",
+          log_type: "None",
+          payload: request.to_json,
+        })
+
+        JSON.parse(JSON.parse(JSON.parse(resp.payload.string)['Payload'])['body'])
+      end
+    end
     class AWSRestClient
       def initialize(credentials=  {
             access_key_id: ENV['AWS_ACCESS_KEY_ID'],
@@ -25,7 +49,7 @@ module Idlc
       def fetch(request)
         request = JSON.parse(request)
 
-        endpoint = $config["#{request['service']}_svc_endpoint"]
+        endpoint = 'https://' + $config["#{request['service']}_svc"]['endpoint'] + $config["#{request['service']}"]['stage']
 
         body = ''
         body = request['body'].to_json if request['body']
