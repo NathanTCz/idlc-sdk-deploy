@@ -45,7 +45,7 @@ module Idlc
           }
           account = client.fetch(request)
 
-          metadata['account'] = account
+          metadata['account'] = account['accounts'].first
 
           request = {
             service: 'config',
@@ -57,7 +57,7 @@ module Idlc
           }
           application = client.fetch(request)
 
-          metadata['application'] = application
+          metadata['application'] = application['applications'].first
           metadata
         end
       end
