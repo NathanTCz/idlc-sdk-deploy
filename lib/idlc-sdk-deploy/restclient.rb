@@ -14,7 +14,7 @@ $services = {
     'stage' => 'dev'
   },
   'status' => {
-    'endpoint' => 'dwervfhpxe.execute-api.us-east-1.amazonaws.com',
+    'endpoint' => 'xmztqnqkb8.execute-api.us-east-1.amazonaws.com',
     'stage' => 'dev'
   }
 }
