@@ -12,6 +12,7 @@ Terraform::Binary.configure do |config|
   config.version = '0.8.7'
 end
 
+# Load the core gem, this also has the service deinitions defined in the $services global variable
 require 'idlc-sdk-core'
 
 require 'idlc-sdk-deploy/config'

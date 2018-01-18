@@ -3,22 +3,6 @@ require 'json'
 require 'net/http'
 require 'aws-sdk-lambda'
 
-# Service Definitions
-$services = {
-  'config' => {
-    'endpoint' => 'un0t03st4m.execute-api.us-east-1.amazonaws.com',
-    'stage' => 'dev'
-  },
-  'deploy' => {
-    'endpoint' => 'dwervfhpxe.execute-api.us-east-1.amazonaws.com',
-    'stage' => 'dev'
-  },
-  'status' => {
-    'endpoint' => 'xmztqnqkb8.execute-api.us-east-1.amazonaws.com',
-    'stage' => 'dev'
-  }
-}
-
 module Idlc
   module Deploy
     class AWSLambdaProxy
