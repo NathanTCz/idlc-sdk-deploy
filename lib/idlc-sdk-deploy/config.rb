@@ -23,7 +23,7 @@ module Idlc
         end
 
         def get_env_metadata(env_key)
-          client = Idlc::Deploy::AWSLambdaProxy.new()
+          client = Idlc::AWSLambdaProxy.new()
 
           request = {
             service: 'deploy',
