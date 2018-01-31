@@ -85,6 +85,45 @@ module Idlc
 
           metadata
         end
+
+        def get_instance
+          # Get the current instance id from the instance metadata.
+          metadata_endpoint = 'http://169.254.169.254/latest/meta-data/'
+          instance_id = Net::HTTP.get( URI.parse( metadata_endpoint + 'instance-id' ) )
+
+          # Create instance object with instance id.
+          instance = Aws::EC2::Instance.new( id: instance_id, region: ENV['AWS_REGION'] )
+          instance['instance_id'] = instance_id
+
+          instance.tags.each do |tag|
+            # Grab all of the tags as node attributes
+            instance['tags'][tag.key] = tag.value
+          end
+
+          instance
+        end
+
+        def set_hostname (instance)
+          hostname = instance['tags']['Name']
+
+          unless (instance['tags']['Name'].start_with? 'db')
+            # Use instance id for unique hostname
+            hostname = instance['tags']['Name'][0..4] + '-' + instance['instance_id'][2..10]
+          end
+
+          instance.create_tags(
+            dry_run: false,
+            tags: [ # required
+              {
+                key: 'hostname',
+                value: hostname
+              }
+            ]
+          )
+
+          #return
+          hostname
+        end
       end
 
       def initialize(region)
@@ -123,45 +162,6 @@ module Idlc
       end
 
       private
-
-      def get_instance
-        # Get the current instance id from the instance metadata.
-        metadata_endpoint = 'http://169.254.169.254/latest/meta-data/'
-        instance_id = Net::HTTP.get( URI.parse( metadata_endpoint + 'instance-id' ) )
-
-        # Create instance object with instance id.
-        instance = Aws::EC2::Instance.new( id: instance_id, region: ENV['AWS_REGION'] )
-        instance['instance_id'] = instance_id
-
-        instance.tags.each do |tag|
-          # Grab all of the tags as node attributes
-          instance['tags'][tag.key] = tag.value
-        end
-
-        instance
-      end
-
-      def set_hostname (instance)
-        hostname = instance['tags']['Name']
-
-        unless (instance['tags']['Name'].start_with? 'db')
-          # Use instance id for unique hostname
-          hostname = instance['tags']['Name'][0..4] + '-' + instance['instance_id'][2..10]
-        end
-
-        instance.create_tags(
-          dry_run: false,
-          tags: [ # required
-            {
-              key: 'hostname',
-              value: hostname
-            }
-          ]
-        )
-
-        #return
-        hostname
-      end
 
       def configure_tfstatev8(bucket, sub_bucket, working_directory)
         args = []
