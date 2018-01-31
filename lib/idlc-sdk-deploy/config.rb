@@ -26,16 +26,13 @@ module Idlc
           # This method is meant to be run on an instance inside of a chef run to
           # provision instance and environment metadata.
 
-          # `default` is a reserved var available in a Chef run
-
           ENV['AWS_REGION'] = 'us-east-1' if ENV['AWS_REGION'].nil?
-          default['aws']['region'] = ENV['AWS_REGION']
 
           # Get the current instance id from the instance metadata.
           instance = get_instance
 
-          default['environment_key'] = instance['tags']['environment_key']
-          default['curr_node']['hostname'] = set_hostname(instance)
+          # add some data
+          metadata['hostname'] = set_hostname(instance)
 
           # return environment metadata
           get_env_metadata(instance['tags']['environment_key'])
