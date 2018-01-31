@@ -1,6 +1,8 @@
 require 'aws-sdk-elasticsearchservice'
+require 'aws-sdk-ec2'
 require 'aws-sigv4'
 require 'net/https'
+require 'net/http'
 require 'net-telnet'
 require 'rspec/core/rake_task'
 require 'sshkey'

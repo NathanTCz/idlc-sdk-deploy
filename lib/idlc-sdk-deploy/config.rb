@@ -22,43 +22,23 @@ module Idlc
           `#{Terraform::Binary::Command.binary} output #{key}`.strip!
         end
 
-        def get_env_metadata(env_key)
-          client = Idlc::AWSLambdaProxy.new()
+        def whoami
+          # This method is meant to be run on an instance inside of a chef run to
+          # provision instance and environment metadata.
 
-          request = {
-            service: 'deploy',
-            method: 'GET',
-            lambda: 'metadata',
-            pathParameters: {
-              jobName: env_key
-            }
-          }
-          metadata = client.fetch(request)['deployments'].first
+          # `default` is a reserved var available in a Chef run
 
-          request = {
-            service: 'config',
-            method: 'GET',
-            lambda: "accounts",
-            pathParameters: {
-              accountName: metadata['environment']['account_alias']
-            }
-          }
-          account = client.fetch(request)
+          ENV['AWS_REGION'] = 'us-east-1' if ENV['AWS_REGION'].nil?
+          default['aws']['region'] = ENV['AWS_REGION']
 
-          metadata['account'] = account['accounts'].first
+          # Get the current instance id from the instance metadata.
+          instance = get_instance
 
-          request = {
-            service: 'config',
-            method: 'GET',
-            lambda: "applications",
-            pathParameters: {
-              appName: metadata['environment']['application_name'].downcase
-            }
-          }
-          application = client.fetch(request)
+          default['environment_key'] = instance['tags']['environment_key']
+          default['curr_node']['hostname'] = set_hostname(instance)
 
-          metadata['application'] = application['applications'].first
-          metadata
+          # return environment metadata
+          get_env_metadata(instance['tags']['environment_key'])
         end
       end
 
@@ -98,6 +78,93 @@ module Idlc
       end
 
       private
+
+      def get_instance
+        # Get the current instance id from the instance metadata.
+        metadata_endpoint = 'http://169.254.169.254/latest/meta-data/'
+        instance_id = Net::HTTP.get( URI.parse( metadata_endpoint + 'instance-id' ) )
+
+        # Create instance object with instance id.
+        instance = Aws::EC2::Instance.new( id: instance_id, region: ENV['AWS_REGION'] )
+        instance['instance_id'] = instance_id
+
+        instance.tags.each do |tag|
+          # Grab all of the tags as node attributes
+          instance['tags'][tag.key] = tag.value
+        end
+
+        instance
+      end
+
+      def set_hostname (instance)
+        hostname = instance['tags']['Name']
+
+        unless (instance['tags']['Name'].start_with? 'db')
+          # Use instance id for unique hostname
+          hostname = instance['tags']['Name'][0..4] + '-' + instance['instance_id'][2..10]
+        end
+
+        instance.create_tags(
+          dry_run: false,
+          tags: [ # required
+            {
+              key: 'hostname',
+              value: hostname
+            }
+          ]
+        )
+
+        #return
+        hostname
+      end
+
+      def get_env_metadata(env_key)
+        client = Idlc::AWSLambdaProxy.new()
+
+        request = {
+          service: 'deploy',
+          method: 'GET',
+          lambda: 'metadata',
+          pathParameters: {
+            jobName: env_key
+          }
+        }
+        metadata = client.fetch(request)['deployments'].first
+
+        request = {
+          service: 'config',
+          method: 'GET',
+          lambda: "accounts",
+          pathParameters: {
+            accountName: metadata['environment']['account_alias']
+          }
+        }
+        account = client.fetch(request)
+
+        metadata['account'] = account['accounts'].first
+
+        request = {
+          service: 'config',
+          method: 'GET',
+          lambda: "applications",
+          pathParameters: {
+            appName: metadata['environment']['application_name'].downcase
+          }
+        }
+        application = client.fetch(request)
+
+        metadata['application'] = application['applications'].first
+
+        # find db instance
+        metadata['instances'].each do |instance|
+          if instance['hostname'].start_with? 'db'
+            metadata['db_instance'] = instance
+            break
+          end
+        end
+
+        metadata
+      end
 
       def configure_tfstatev8(bucket, sub_bucket, working_directory)
         args = []
