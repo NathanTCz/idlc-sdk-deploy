@@ -1,5 +1,5 @@
 module Idlc
   module Deploy
-    VERSION = '1.0.20'.freeze
+    VERSION = '1.0.21'.freeze
   end
 end

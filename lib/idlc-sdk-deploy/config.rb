@@ -116,7 +116,8 @@ module Idlc
             hostname = instance['tags']['Name'][0..4] + '-' + instance['instance_id'][2..10]
           end
 
-          instance.create_tags(
+          ec2_instance = Aws::EC2::Instance.new( id: instance['instance_id'], region: ENV['AWS_REGION'] )
+          ec2_instance.create_tags(
             dry_run: false,
             tags: [ # required
               {
