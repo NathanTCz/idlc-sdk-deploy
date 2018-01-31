@@ -40,6 +40,54 @@ module Idlc
           # return environment metadata
           get_env_metadata(instance['tags']['environment_key'])
         end
+
+        def get_env_metadata(env_key)
+          client = Idlc::AWSLambdaProxy.new()
+
+          request = {
+            service: 'deploy',
+            method: 'GET',
+            lambda: 'metadata',
+            pathParameters: {
+              jobName: env_key
+            }
+          }
+          metadata = client.fetch(request)['deployments'].first
+
+          request = {
+            service: 'config',
+            method: 'GET',
+            lambda: "accounts",
+            pathParameters: {
+              accountName: metadata['environment']['account_alias']
+            }
+          }
+          account = client.fetch(request)
+
+          metadata['account'] = account['accounts'].first
+
+          request = {
+            service: 'config',
+            method: 'GET',
+            lambda: "applications",
+            pathParameters: {
+              appName: metadata['environment']['application_name'].downcase
+            }
+          }
+          application = client.fetch(request)
+
+          metadata['application'] = application['applications'].first
+
+          # find db instance
+          metadata['instances'].each do |instance|
+            if instance['hostname'].start_with? 'db'
+              metadata['db_instance'] = instance
+              break
+            end
+          end
+
+          metadata
+        end
       end
 
       def initialize(region)
@@ -116,54 +164,6 @@ module Idlc
 
         #return
         hostname
-      end
-
-      def get_env_metadata(env_key)
-        client = Idlc::AWSLambdaProxy.new()
-
-        request = {
-          service: 'deploy',
-          method: 'GET',
-          lambda: 'metadata',
-          pathParameters: {
-            jobName: env_key
-          }
-        }
-        metadata = client.fetch(request)['deployments'].first
-
-        request = {
-          service: 'config',
-          method: 'GET',
-          lambda: "accounts",
-          pathParameters: {
-            accountName: metadata['environment']['account_alias']
-          }
-        }
-        account = client.fetch(request)
-
-        metadata['account'] = account['accounts'].first
-
-        request = {
-          service: 'config',
-          method: 'GET',
-          lambda: "applications",
-          pathParameters: {
-            appName: metadata['environment']['application_name'].downcase
-          }
-        }
-        application = client.fetch(request)
-
-        metadata['application'] = application['applications'].first
-
-        # find db instance
-        metadata['instances'].each do |instance|
-          if instance['hostname'].start_with? 'db'
-            metadata['db_instance'] = instance
-            break
-          end
-        end
-
-        metadata
       end
 
       def configure_tfstatev8(bucket, sub_bucket, working_directory)
