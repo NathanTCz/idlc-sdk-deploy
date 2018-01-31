@@ -93,14 +93,15 @@ module Idlc
 
           # Create instance object with instance id.
           instance = Aws::EC2::Instance.new( id: instance_id, region: ENV['AWS_REGION'] )
-          instance['instance_id'] = instance_id
+          i = {}
+          i['instance_id'] = instance_id
 
           instance.tags.each do |tag|
             # Grab all of the tags as node attributes
-            instance['tags'][tag.key] = tag.value
+            i['tags'][tag.key] = tag.value
           end
 
-          instance
+          i
         end
 
         def set_hostname (instance)
