@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'idlc-sdk-core'
   spec.add_runtime_dependency 'aws-sdk-elasticsearchservice'
+  spec.add_runtime_dependency 'aws-sdk-ec2'
   spec.add_runtime_dependency 'net-telnet'
   spec.add_runtime_dependency 'sshkey'
   spec.add_runtime_dependency 'terraform-binary'
