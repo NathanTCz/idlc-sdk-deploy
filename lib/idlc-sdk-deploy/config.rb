@@ -93,9 +93,14 @@ module Idlc
 
           # Create instance object with instance id.
           instance = Aws::EC2::Instance.new( id: instance_id, region: ENV['AWS_REGION'] )
-          i = {}
-          i['instance_id'] = instance_id
 
+          # save instance_id
+          i = {
+            instance_id: instance_id,
+            tags: {}
+          }
+
+          # save tags
           instance.tags.each do |tag|
             # Grab all of the tags as node attributes
             i['tags'][tag.key] = tag.value
