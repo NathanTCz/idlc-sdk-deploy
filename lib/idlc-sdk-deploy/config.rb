@@ -31,11 +31,11 @@ module Idlc
           # Get the current instance id from the instance metadata.
           instance = get_instance
 
-          # add some data
+          # return environment metadata
+          metadata = get_env_metadata(instance['tags']['environment_key'])
           metadata['hostname'] = set_hostname(instance)
 
-          # return environment metadata
-          get_env_metadata(instance['tags']['environment_key'])
+          metadata
         end
 
         def get_env_metadata(env_key)
