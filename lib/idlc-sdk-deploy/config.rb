@@ -77,7 +77,7 @@ module Idlc
 
           # find db instance
           metadata['instances'].each do |instance|
-            if (instance['hostname'].start_with? 'db' || instance['hostname'].start_with? 'rds')
+            if (instance['hostname'].start_with?('db') || instance['hostname'].start_with?('rds'))
               metadata['db_instance'] = instance
               break
             end
