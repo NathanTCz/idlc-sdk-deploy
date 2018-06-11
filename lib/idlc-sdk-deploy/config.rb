@@ -77,7 +77,7 @@ module Idlc
 
           # find db instance
           metadata['instances'].each do |instance|
-            if instance['hostname'].start_with? 'db'
+            if (instance['hostname'].start_with? 'db' || instance['hostname'].start_with? 'rds')
               metadata['db_instance'] = instance
               break
             end
@@ -138,8 +138,7 @@ module Idlc
         Idlc::Utility.check_for_creds
 
       rescue Idlc::Utility::MissingCredentials => e
-        err("ERROR: #{e.message}\n")
-        exit 1
+        msg("WARN: #{e.message}\nFalling back to implicit authentication.")
       end
 
       def configure_state(bucket, sub_bucket, working_directory)
