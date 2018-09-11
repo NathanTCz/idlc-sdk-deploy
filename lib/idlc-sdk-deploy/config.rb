@@ -75,11 +75,14 @@ module Idlc
 
           metadata['application'] = application['applications'].first
 
-          # find db instance
+          # find db and fs instance
           metadata['instances'].each do |instance|
             if (instance['hostname'].start_with?('db') || instance['hostname'].start_with?('rds'))
               metadata['db_instance'] = instance
-              break
+            end
+
+            if (instance['hostname'].start_with?('fs'))
+              metadata['fs_instance'] = instance
             end
           end
 
