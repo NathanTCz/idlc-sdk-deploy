@@ -114,7 +114,7 @@ module Idlc
         def set_hostname (instance)
           hostname = instance['tags']['Name']
 
-          unless (instance['tags']['Name'].start_with? 'db')
+          unless (instance['tags']['Name'].start_with? 'db' || instance['tags']['Name'].start_with? 'fs')
             # Use instance id for unique hostname
             hostname = instance['tags']['Name'][0..4] + '-' + instance['instance_id'][2..10]
           end
