@@ -39,4 +39,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'sshkey'
   spec.add_runtime_dependency 'terraform-binary'
   spec.add_runtime_dependency 'terraform_landscape'
+  spec.add_runtime_dependency 'commander', '4.4.6'
 end
