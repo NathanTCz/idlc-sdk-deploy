@@ -26,7 +26,7 @@ module Idlc
           # This method is meant to be run on an instance inside of a chef run to
           # provision instance and environment metadata.
 
-          ENV['AWS_REGION'] = 'us-east-1' if ENV['AWS_REGION'].nil?
+          ENV['AWS_REGION'] = get_region
 
           # Get the current instance id from the instance metadata.
           instance = get_instance
@@ -87,6 +87,15 @@ module Idlc
           end
 
           metadata
+        end
+
+        def get_region
+          # Get the current az from the instance metadata.
+          metadata_endpoint = 'http://169.254.169.254/latest/meta-data/'
+          az = Net::HTTP.get( URI.parse( metadata_endpoint + 'placement/availability-zone' ) )
+
+          # return
+          az[0..-2]
         end
 
         def get_instance
