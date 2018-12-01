@@ -7,24 +7,28 @@ module Idlc
       class << self
         include Idlc::Helpers
 
-        def start_instance(instance)
-          msg('Starting Instance...')
+        def start_instance(instance, async=false)
+          msg("Starting Instance (#{instance.id})...")
           instance.start(
             dry_run: false
           )
-          obj = instance.wait_until_running
-          msg('Started Instance: ' + get_name(obj.tags))
+          unless async
+            obj = instance.wait_until_running
+            msg('Started Instance: ' + get_name(obj.tags))
+          end
         end
 
-        def stop_instance(instance)
+        def stop_instance(instance, async=false)
           raise InstanceKeepAlive if keep_alive?(instance.tags)
 
-          msg('Stopping Instance...')
+          msg("Stopping Instance (#{instance.id})...")
           instance.stop(
             dry_run: false
           )
-          obj = instance.wait_until_stopped
-          msg('Stopped Instance: ' + get_name(obj.tags))
+          unless async
+            obj = instance.wait_until_stopped
+            msg('Stopped Instance: ' + get_name(obj.tags))
+          end
         end
 
         def enable_keep_alive(instance)
@@ -33,7 +37,7 @@ module Idlc
             tags: [ # required
               {
                 key: 'keep_alive',
-                value: 'true'
+                value: "true-#{Time.now.to_i}"
               }
             ]
           )
@@ -112,22 +116,6 @@ module Idlc
           true
         end
 
-        private
-
-        def keep_alive?(tags)
-          k = 'false'
-
-          tags.each do |t|
-            k = t.value if t.key == 'keep_alive'
-          end
-
-          true?(k)
-        end
-
-        def true?(string)
-          string.to_s == 'true'
-        end
-
         def get_name(tags)
           name = ''
 
@@ -137,6 +125,44 @@ module Idlc
 
           # Return
           name
+        end
+
+        private
+
+        def keep_alive?(tags)
+          k = 'false'
+          k = get_keep_alive(tags)
+
+        return !keep_alive_expired?(k) if true?(k.split('-')[0])
+        false
+        end
+
+        def keep_alive_expired?(tag)
+          tag_parts = tag.split('-')
+
+          msg("keep_alive expired..") if one_week_old?(tag_parts[1].to_i)
+          msg("keep_alive expires in #{((Time.now.to_i - (tag_parts[1].to_i + (7*24*3600)))/24/3600).abs} days..") unless one_week_old?(tag_parts[1].to_i)
+
+          one_week_old?(tag_parts[1].to_i)
+        end
+
+        def true?(string)
+          string.to_s == 'true'
+        end
+
+        def one_week_old?(ts)
+          (Time.now.to_i - ts) > (7*(24*3600))
+        end
+
+        def get_keep_alive(tags)
+          v = ''
+
+          tags.each do |t|
+            v = t.value if t.key == 'keep_alive'
+          end
+
+          # Return
+          v
         end
 
         def http_request(endpoint)

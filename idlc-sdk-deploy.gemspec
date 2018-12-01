@@ -34,9 +34,10 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'idlc-sdk-core'
   spec.add_runtime_dependency 'aws-sdk-elasticsearchservice'
-  spec.add_runtime_dependency 'aws-sigv4'
+  spec.add_runtime_dependency 'aws-sdk-ec2'
   spec.add_runtime_dependency 'net-telnet'
   spec.add_runtime_dependency 'sshkey'
   spec.add_runtime_dependency 'terraform-binary'
-  spec.add_runtime_dependency 'terraform_landscape'
+  spec.add_runtime_dependency 'commander', '4.4.6'
+  spec.add_runtime_dependency 'terraform_landscape', '0.2.1'
 end

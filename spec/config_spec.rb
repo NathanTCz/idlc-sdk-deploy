@@ -11,10 +11,6 @@ module Idlc
           ENV['AWS_SECRET_ACCESS_KEY'] = nil
         end
 
-        it 'exits if no credentials are supplied' do
-          expect { Config.new(nil) }.to raise_error SystemExit
-        end
-
         it 'raises if the supplied config file does not exist' do
           expect { Config.new.parse('nil') }.to raise_error ArgumentError
         end
